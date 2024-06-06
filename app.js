@@ -2,47 +2,35 @@ const express = require('express');
 const app = express();
 const PORTA = 3000;
 
+const produtoService = require('./service/produto_service');
+
 app.use(express.json()) // for parsing application/json
 
-let listaProdutos = [
-    {
-        id: 1,
-        nome: "arroz",
-        categoria: "alimento",
-        preco: 5.40
-    },
-    {
-        id: 2,
-        nome: "leite",
-        categoria: "bebida",
-        preco: 4.70
-    }    
-]
-
 app.get("/produtos", (req, res) => {
-    res.json(listaProdutos)
+    res.json(produtoService.listar());
 })
 
 app.post("/produtos", (req, res) => {
     let produto = req.body;
     
-    produto.id= 3;
-    listaProdutos.push(produto);
-
-    res.status(201).json(produto);
-    
+    try {
+        const produtoInserido = produtoService.inserir(produto);
+        res.status(201).json(produtoInserido);
+    } 
+    catch (err) {
+        res.status(err.id).json(err);
+    }
 })
 
 app.get("/produtos/:id", (req, res) => {
-    const id = req.params.id;
-    if(id == 1) {
-        res.json(listaProdutos[0]);
+    const id = +req.params.id;
+    
+    try{
+        const produtoComId = produtoService.buscarPorId(id);
+        res.json(produtoComId);
     }
-    else if(id == 2) {
-        res.json(listaProdutos[1]);
-    }
-    else {
-        res.status(404).json({erro: "Produto nao encontrado"})
+    catch(err) {
+        res.status(err.id).json(err);
     }
 })
 
